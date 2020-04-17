@@ -2,20 +2,13 @@ package com.jun.crypto;
 
 import com.codahale.shamir.Scheme;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+import javax.xml.bind.DatatypeConverter;
 
+import java.security.*;
 import java.util.Map;
 import java.util.Base64;
 
-import java.security.Security;
-import java.security.SecureRandom;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-
 public class ShamirSecretSharingScheme {
-
-    public static void main(String[] args) {
-
-    }
 
     /**
      * @param privateKey The encoded PrivateKey to split into shares
@@ -25,7 +18,7 @@ public class ShamirSecretSharingScheme {
      * @throws NoSuchProviderException
      * @throws NoSuchAlgorithmException
      */
-    public static void splitSecret(byte[] privateKey, int n, int k) throws NoSuchProviderException, NoSuchAlgorithmException {
+    public static Map<Integer, byte[]> splitSecret(byte[] privateKey, int n, int k) throws NoSuchProviderException, NoSuchAlgorithmException {
 
         Security.addProvider(new BouncyCastleFipsProvider());
         SecureRandom random = SecureRandom.getInstance("DEFAULT", "BCFIPS");
@@ -33,10 +26,14 @@ public class ShamirSecretSharingScheme {
         final byte[] secret = privateKey;
         final Map<Integer, byte[]> shares = scheme.split(secret);
         System.out.println("[*]: " + k + " of " + n + " sharing scheme");
-        for (Map.Entry<Integer, byte[]> share : shares.entrySet()){
-            //Base64 encode the shares so they're human readable/portable
-            System.out.println("Share " + share.getKey() + ":\n" + Base64.getEncoder().encodeToString(share.getValue()));
-        }
+//        for (Map.Entry<Integer, byte[]> share : shares.entrySet()){
+//            //Base64 encode the shares so they're human readable/portable
+//            System.out.println("Share " + share.getKey() + ":\n" + Base64.getEncoder().encodeToString(share.getValue()));
+//            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+//            byte[] hash = digest.digest(share.getValue());
+//            System.out.println(DatatypeConverter.printHexBinary(hash));
+//        }
+        return shares;
     }
 
     /**

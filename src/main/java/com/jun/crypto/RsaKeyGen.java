@@ -1,14 +1,6 @@
 package com.jun.crypto;
 
-import java.security.KeyPair;
-import java.security.Security;
-import java.security.PublicKey;
-import java.security.PrivateKey;
-import java.security.KeyFactory;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchProviderException;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidAlgorithmParameterException;
+import java.security.*;
 
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.RSAPrivateKeySpec;
@@ -17,8 +9,12 @@ import java.security.spec.RSAKeyGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 
 import java.util.Base64;
+import java.util.List;
 
+import javafx.util.Pair;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
+
+import javax.crypto.*;
 
 public class RsaKeyGen{
     public static void main(String[] args) {
@@ -80,6 +76,31 @@ public class RsaKeyGen{
         return keypair;
     }
 
+    public static SecretKey generateAesKey(int keySize) throws NoSuchProviderException, NoSuchAlgorithmException {
+        KeyGenerator aesKeyGenerator = KeyGenerator.getInstance("AES", "BCFIPS");
+        Security.addProvider(new BouncyCastleFipsProvider());
+        //Need RNG for AES key
+        SecureRandom random = SecureRandom.getInstance("DEFAULT", "BCFIPS");
+        aesKeyGenerator.init(keySize, random);
+        SecretKey encryptionKey = aesKeyGenerator.generateKey();
+        return encryptionKey;
+    }
+
+    //
+    public static AesEncryptedData aesEncrypt(byte[] data, SecretKey key)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException {
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        byte [] iv = cipher.getIV();
+        byte[] encryptedData = cipher.doFinal(data);
+        return new AesEncryptedData(encryptedData, iv);
+    }
+
+    public static byte[] rsaEncrypt(byte [] data, PublicKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        return cipher.doFinal(data);
+    }
     /**
      * @param publicKey The PublicKey object to print in the PKCS8 PEM base64-encoded format
      */
